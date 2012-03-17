@@ -12,11 +12,14 @@ class Key(object):
     A key determines how to extract the data from Redis. Maintains binary
     safe representation
     """
-    def __init__(self, prefix="", key=None):
-        """Create a key with the prefix and a string key. The key can be None
-        and the a uuid will be used in its place."""
+    def __init__(self, pool_name, prefix="", key=None):
+        """Create a key that connects to the pool identified by pool_name with
+        the prefix and a string key. The key can be None and the a uuid will be
+        used in its place."""
         key = key or self._gen_uuid()
-        self.prefix, self.key = prefix, key
+        self.pool_name = pool_name
+        self.prefix = prefix
+        self.key = key
 
     def _gen_uuid(self):
         """Generate a UUID for this object."""

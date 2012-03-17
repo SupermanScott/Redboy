@@ -5,8 +5,6 @@
 #
 
 """Redboy, an object non-relational manager for Redis"""
-
-
 import redis
 
 _CONNECTIONS = {}

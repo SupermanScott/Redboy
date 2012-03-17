@@ -50,7 +50,8 @@ class Record(dict):
 
         self._clean()
 
-        self._original = get_pool(self._pool_name).hgetall(str(key))
+        pool_name = key.pool_name or self._pool_name
+        self._original = get_pool(pool_name).hgetall(str(key))
 
         self.revert()
 
@@ -61,9 +62,10 @@ class Record(dict):
         if not self.valid():
             raise exc.ErrorMissingField("Missing required field(s):",
                                         self.missing())
-
+        new_record = False
         if not hasattr(self, 'key') or not self.key:
-            self.key = self.default_key()
+            self.key = self.make_key()
+            new_record = True
 
         assert isinstance(self.key, Key), "Bad record key in save()"
 
@@ -79,7 +81,7 @@ class Record(dict):
             finally:
                 # Update indexes
                 for index in self.get_indexes():
-                    index.append(self)
+                    index.append(self, new_record)
         finally:
             # Clean up internal state
             if changes['changed']:
@@ -91,16 +93,16 @@ class Record(dict):
     def remove(self):
         """Remove this record from Redis."""
         self._clean()
-        get_pool(self._pool_name).delete(str(self.key))
+        pool_name = key.pool_name or self._pool_name
+        get_pool(pool_name).delete(str(self.key))
         return self
 
-    def make_key(self, key):
+    def make_key(self, key=None):
         """Makes a key from the provided string key"""
-        return Key(self._prefix, key)
-
-    def default_key(self):
-        """Return a default key for this record."""
-        return Key(self._prefix)
+        if not self.key:
+            return Key(self._prefix, key)
+        else:
+            self.key.key = key
 
     def valid(self):
         """Return a boolean indicating whether the record is valid."""
@@ -130,7 +132,8 @@ class Record(dict):
 
     def _save_internal(self, key, changes):
         """Internal save method."""
-        connection_pool = get_pool(self._pool_name)
+        pool_name = key.pool_name or self._pool_name
+        connection_pool = get_pool(pool_name)
 
         # Delete items
         if changes['deleted']:
