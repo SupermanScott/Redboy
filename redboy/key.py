@@ -28,7 +28,7 @@ class Key(object):
     def _attrs(self):
         """Get attributes of this key."""
         return dict((attr, getattr(self, attr)) for attr in
-                    ('prefix', 'key',))
+                    ('pool_name', 'prefix', 'key',))
 
     def __str__(self):
         return self.prefix + self.key
