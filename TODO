@@ -1,0 +1,4 @@
+Actually create a setup.py
+Tests for Views
+Deletion doesn't work I think
+How to tie into expiration? Pass that into View.append and Mirror._save_internal?
