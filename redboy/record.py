@@ -100,7 +100,7 @@ class Record(dict):
     def make_key(self, key=None):
         """Makes a key from the provided string key"""
         if not self.key:
-            return Key(self._prefix, key)
+            return Key(self._pool_name, self._prefix, key)
         else:
             self.key.key = key
 
@@ -122,8 +122,8 @@ class Record(dict):
 
     def get_indexes(self):
         """Return indexes this record should be stored in."""
-        return [index() if isinstance(index, type) else index
-                for index in self._views]
+        return [index(key, self.__class__)
+                for index, key in self._views]
 
     def get_mirrors(self):
         """Return mirrors this record should be stored in."""
@@ -132,6 +132,9 @@ class Record(dict):
 
     def _save_internal(self, key, changes):
         """Internal save method."""
+        if not key:
+            return
+
         pool_name = key.pool_name or self._pool_name
         connection_pool = get_pool(pool_name)
 
