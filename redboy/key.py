@@ -5,6 +5,8 @@
 #
 
 """Redboy: Key representation"""
+# @TODO: Really this class is silly. Its really just an __init__ and a
+# str(). Seems obtuse and useless.
 import uuid
 
 class Key(object):
