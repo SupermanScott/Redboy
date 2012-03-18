@@ -77,15 +77,15 @@ class Record(dict):
             try:
                 # Save mirrors
                 for mirror in self.get_mirrors():
-                    self._save_internal(mirror.mirror_key(self), changes)
+                    mirror._save_internal(mirror.mirror_key(self), changes)
             finally:
                 # Update indexes
                 for index in self.get_indexes():
                     index.append(self, new_record)
         finally:
             # Clean up internal state
-            if changes['changed']:
-                self._modified.clear()
+            self._modified.clear()
+            self._deleted.clear()
             self._original = copy.deepcopy(self._columns)
 
         return self
