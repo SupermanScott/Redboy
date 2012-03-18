@@ -1,0 +1,3 @@
+Redboy - Redis Non Relational Manger
+====================================
+Redboy Allows users to create a Record in Redis and assign that Record to a number of different Views and Mirror that record to another. It manages insertations and deletions. See examples/
