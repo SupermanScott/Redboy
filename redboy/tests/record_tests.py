@@ -17,7 +17,7 @@ def setup_function():
 def test_new_record():
     new_record = record.Record(name="scott", email="scott@scottreynolds.us")
     assert "name" in new_record, "First name is missing from record"
-    assert "email" in new_record, "Email i smissing from record"
+    assert "email" in new_record, "Email is missing from record"
 
     assert "name" in new_record._modified, "name isn't marked for insertation"
     assert "email" in new_record._modified, "email isn't marked for insertation"
