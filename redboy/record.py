@@ -168,6 +168,7 @@ class Record(dict):
     def __setitem__(self, item, value):
         """Set an item, storing it into the _columns backing store."""
         if value is None:
+            # @TODO: make this a call to self.__delitem__
             raise exc.ErrorInvalidValue("You may not set an item to None.")
 
         # If this doesn't change anything, don't record it
