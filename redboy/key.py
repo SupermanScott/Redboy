@@ -16,14 +16,10 @@ class Key(object):
         """Create a key that connects to the pool identified by pool_name with
         the prefix and a string key. The key can be None and the a uuid will be
         used in its place."""
-        key = key or self._gen_uuid()
+        key = key or uuid.uuid4().hex
         self.pool_name = pool_name
         self.prefix = prefix
         self.key = key
-
-    def _gen_uuid(self):
-        """Generate a UUID for this object."""
-        return uuid.uuid4().hex
 
     def _attrs(self):
         """Get attributes of this key."""
