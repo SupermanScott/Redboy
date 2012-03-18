@@ -48,6 +48,13 @@ def test_loading():
     loaded_record = record.Record().load(
         record.Key(pool_name="test_pool", prefix="test", key="scott"))
 
+    assert 'awesome' in loaded_record._original and 'awesome' in loaded_record, \
+        "awesome key should be loaded into original"
+    assert 'name' in loaded_record._original and 'name' in loaded_record, \
+        "name should be in the original"
+    assert 'email' in loaded_record._original and 'email' in loaded_record, \
+        "email should bein the original"
+
     assert record.get_pool.assert_once_called_with("test_pool"), \
         "Loading a record didn't call get_pool once with the right pool name"
 
@@ -87,3 +94,51 @@ def test_loading():
     loaded_record.save()
     assert 'testing' not in loaded_record, \
         "testing shouldn't be in the record"
+
+@nose.with_setup(setup_function)
+def test_saving():
+    loaded_record = record.Record().load(
+        record.Key(pool_name="test_pool", prefix="test", key="scott"))
+
+    loaded_record['awesome'] = False
+    assert 'awesome' in loaded_record._modified, \
+        "awesome key should be setup for changes"
+    assert 'awesome' not in loaded_record._deleted, \
+        "awesome key should not be in the deleted storage"
+
+    loaded_record.save()
+
+    assert 'awesome' not in loaded_record._modified, \
+        "awesome should not be in modified after save"
+    assert 'awesome' in loaded_record and not loaded_record['awesome'], \
+        "Awesome should be in the record and set to False"
+
+    del loaded_record['awesome']
+    loaded_record.save()
+    assert 'awesome' not in loaded_record._deleted, \
+        "awesome should be cleared from deleted storage"
+    assert not loaded_record._deleted and not loaded_record._modified, \
+        "loaded_record shouldn't have any new changes after save"
+
+@nose.with_setup(setup_function)
+def test_mirrors():
+    loaded_record = record.Record().load(
+        record.Key(pool_name="test_pool", prefix="test", key="scott"))
+
+    mock_mirror = mock.Mock(name="mirror")
+    mock_mirror.mirror_key = mock.Mock(name="mirror_key",
+                                     return_value=record.Key(pool_name="test_pool",
+                                                             key="mirror"))
+    loaded_record.get_mirrors = mock.Mock(name="get_mirrors",
+                                          return_value=[mock_mirror])
+    loaded_record.save()
+
+    assert mock_mirror.mock_calls[0][0] == '_save_internal', \
+        "Mirror._save_internal should be called"
+    assert mock_mirror.mock_calls[0][1][0].key == 'mirror', \
+        "Mirror._save_internal key is wrong: %s" % \
+        (mock_mirror.mock_calls[0][1][0],)
+
+    changes = mock_mirror.mock_calls[0][1][1]
+    assert not changes['deleted'] and not changes['changed'], \
+        "Shouldn't be any changes: %s" % (changes,)
