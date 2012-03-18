@@ -82,6 +82,7 @@ class Record(dict):
             finally:
                 # Update indexes
                 for index in self.get_indexes():
+                    index.record_class = self.__class__
                     index.append(self, new_record)
         finally:
             # Clean up internal state
@@ -123,8 +124,8 @@ class Record(dict):
 
     def get_indexes(self):
         """Return indexes this record should be stored in."""
-        return [index(key, self.__class__)
-                for index, key in self._views]
+        # @TODO: refactor this guy away!
+        return self._views
 
     def get_mirrors(self):
         """Return mirrors this record should be stored in."""
