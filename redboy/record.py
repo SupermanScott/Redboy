@@ -94,9 +94,21 @@ class Record(dict):
 
     def remove(self):
         """Remove this record from Redis."""
-        self._clean()
-        pool_name = key.pool_name or self._pool_name
-        get_pool(pool_name).delete(str(self.key))
+        pool_name = self.key.pool_name
+        try:
+            try:
+                # Save mirrors
+                for mirror in self.get_mirrors():
+                    mirror.key = mirror.mirror_key(self)
+                    mirror.remove()
+            finally:
+                # Update indexes
+                for index in self.get_indexes():
+                    index.record_class = self.__class__
+                    index.remove(self)
+        finally:
+            get_pool(pool_name).delete(str(self.key))
+            self._clean()
         return self
 
     def make_key(self, key=None):

@@ -20,6 +20,10 @@ class View(object):
         """Add the Record to the View"""
         raise NotImplemented("Use a Subclass to append to the View")
 
+    def remove(self, record):
+        """Remove the Record from the View"""
+        get_pool(self.key.pool_name).lrem(str(self.key), 0, record.key.key)
+
     def __iter__(self):
         connection_pool = get_pool(self.key.pool_name)
         for x in xrange(0, len(self)):
@@ -64,6 +68,10 @@ class Score(object):
         """Add the Record to the View"""
         score = self.score(record)
         get_pool(self.key.pool_name).zadd(str(self.key), score, record.key.key)
+
+    def remove(self, record):
+        """Remove the record from the set"""
+        get_pool(self.key.pool_name).zrem(str(self.key), record.key.key)
 
     def __iter__(self):
         connection_pool = get_pool(self.key.pool_name)

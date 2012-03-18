@@ -1,5 +1,5 @@
 Actually create a setup.py
 Tests for Views
-Deletion doesn't work I think
+Tests for Record Deletion
 How to tie into expiration? Pass that into View.append and Mirror._save_internal?
 Decide if the Key class can DIE!
