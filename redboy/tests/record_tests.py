@@ -145,3 +145,33 @@ def test_mirrors():
     changes = mock_mirror.mock_calls[0][1][1]
     assert not changes['deleted'] and not changes['changed'], \
         "Shouldn't be any changes: %s" % (changes,)
+
+@nose.with_setup(setup_function)
+def test_views():
+    loaded_record = record.Record().load(
+        record.Key(pool_name="test_pool", prefix="test", key="scott"))
+
+    mock_view = mock.Mock(name="view")
+    get_mock = mock.Mock(name="get_indexes", return_value=[mock_view])
+    loaded_record.get_indexes = get_mock
+    loaded_record.save()
+
+    assert mock_view.mock_calls[0][0] == 'append', \
+        "View append method should be called"
+    assert mock_view.mock_calls[0][1][0] == loaded_record, \
+        "View append should be called with the record"
+    assert not mock_view.mock_calls[0][1][1], \
+        "The call to append should tell the view it isn't a new record %s" % (str(mock_view.mock_calls[0][1]),)
+
+    mock_view.reset_mock()
+
+    new_record = record.Record()
+    new_record.get_indexes = get_mock
+    new_record.save()
+
+    assert mock_view.mock_calls[0][0] == 'append', \
+        "View append method should be called"
+    assert mock_view.mock_calls[0][1][0] == new_record, \
+        "View append should be called with the record"
+    assert mock_view.mock_calls[0][1][1], \
+        "The call to append should tell the view it is a new record"
