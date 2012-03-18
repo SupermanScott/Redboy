@@ -48,6 +48,9 @@ def test_loading():
     loaded_record = record.Record().load(
         record.Key(pool_name="test_pool", prefix="test", key="scott"))
 
+    assert loaded_record.key
+    assert loaded_record.key.key == "scott"
+
     assert 'awesome' in loaded_record._original and 'awesome' in loaded_record, \
         "awesome key should be loaded into original"
     assert 'name' in loaded_record._original and 'name' in loaded_record, \

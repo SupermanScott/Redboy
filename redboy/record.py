@@ -54,6 +54,7 @@ class Record(dict):
         self._original = get_pool(pool_name).hgetall(str(key))
 
         self.revert()
+        self.key = key
 
         return self
 
