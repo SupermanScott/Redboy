@@ -1,4 +1,3 @@
-Actually create a setup.py
 Tests for Views
 How to tie into expiration? Pass that into View.append and Mirror._save_internal?
 Decide if the Key class can DIE!
