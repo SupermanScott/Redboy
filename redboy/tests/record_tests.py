@@ -175,3 +175,29 @@ def test_views():
         "View append should be called with the record"
     assert mock_view.mock_calls[0][1][1], \
         "The call to append should tell the view it is a new record"
+
+@nose.with_setup(setup_function)
+def test_removal():
+    loaded_record = record.Record().load(
+        record.Key(pool_name="test_pool", prefix="test", key="scott"))
+
+    mock_view = mock.Mock(name="view")
+    get_mock = mock.Mock(name="get_indexes", return_value=[mock_view])
+    mock_mirror = mock.Mock(name="mirror")
+    get_mirrors = mock.Mock(
+        name="get_mirrors",
+        return_value=[mock_mirror])
+
+    loaded_record.get_indexes = get_mock
+    loaded_record.get_mirrors = get_mirrors
+    loaded_record.remove()
+
+    assert mock_view.mock_calls[0][0] == 'remove', \
+        "View remove should be called"
+    assert mock_view.mock_calls[0][1][0] == loaded_record, \
+        "View should be called with the record itself"
+
+    assert mock_mirror.mock_calls[0][0] == 'mirror_key', \
+        "Mirror should get its mirror key from record %s" % get_mirrors.mock_calls
+    assert mock_mirror.mock_calls[1][0] == 'remove', \
+        "Mock mirror should call delete on itself"
