@@ -4,7 +4,7 @@
 # Author: Scott Reynolds <scott@scottreynolds.us>
 #
 """Example of a User Model"""
-from record import Record, MirroredRecord
+from redboy.record import Record, MirroredRecord
 from redboy.key import Key
 from redboy.view import Queue, Stack, Score
 from time import time
@@ -78,6 +78,10 @@ def main():
 
     for user in scored_view:
         print user
+
+    # Clean up
+    scott.remove()
+    thomas_jeffereson.remove()
 
 if __name__ == '__main__':
     main()
