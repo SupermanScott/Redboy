@@ -14,8 +14,12 @@ import copy
 
 class Record(dict):
     """A record is a collection of key:value pairs that map to a dictionary"""
-    # A tuple of items that are required to be in the Record
+    # A tuple of string field names that are required to be in the Record
     _required = ()
+
+    # A tuple of string field names that are used to create unique Indices for
+    # the Record
+    _indices = ()
 
     # The prefix the record should be saved too.
     _prefix = ""
@@ -154,23 +158,54 @@ class Record(dict):
 
         # Delete items
         if changes['deleted']:
+            deleted_fields = []
+            for field, old_value in changes['deleted']:
+                deleted_fields.append(field)
+                # Delete the record from the unique indices.
+                if field in self._indices:
+                    unique_field_key = Key(key.pool_name,
+                                           key.prefix + "byfield:",
+                                           key=field)
+                    connection_pool.hdel(
+                        str(unique_field_key),
+                        old_value)
+
             # Remove the deleted field from hash
             deleted_fields = [x[0] for x in changes['deleted']]
             connection_pool.hdel(str(key), *deleted_fields)
+
         self._deleted.clear()
 
         # Update items
         if changes['changed']:
             # @TODO: Use Pipeline to protect this.
-            for field, value in changes['changed']:
+            for field, value, original_value in changes['changed']:
                 connection_pool.hset(str(key), field, value)
+
+                # Update the unique indexes
+                if field in self._indices:
+                    unique_field_key = Key(key.pool_name,
+                                           key.prefix + "byfield:",
+                                           key=field)
+
+                    # Delete the old index.
+                    if original_value:
+                        connection_pool.hdel(
+                            str(unique_field_key),
+                            original_value)
+
+                    # Add the new index.
+                    connection_pool.hset(
+                        str(unique_field_key),
+                        value,
+                        key.key)
 
     def _marshal(self):
         """Marshal deleted and changed columns."""
         return {'deleted': tuple((field , old_value,)
                                  for field, old_value in self._deleted.iteritems()
                                  if old_value),
-                'changed': tuple((key, mod_value,)
+                'changed': tuple((key, self._columns[key], self._original.get(key, None),)
                                  for key, mod_value in self._modified.iteritems()
                                  if mod_value)}
 
