@@ -62,6 +62,17 @@ class Record(dict):
 
         return self
 
+    def load_by_index(self, field, value):
+        """Load the Record by the unqiue index. field must be contained in
+        self._indices and is the value of the field. Constructs a key throught
+        self.make_key()"""
+        key = self.make_key()
+
+        self._clean()
+        key.prefix += "byfield:"
+        key.key = field
+        return self.load(get_pool(key.pool_name).hget(str(key), value))
+
     def save(self):
         """Save the record, returns self."""
         if not self.valid():
@@ -111,7 +122,13 @@ class Record(dict):
                     view.record_class = self.__class__
                     view.remove(self)
         finally:
-            get_pool(pool_name).delete(str(self.key))
+            pool = get_pool(pool_name)
+            pool.delete(str(self.key))
+            for index in self._indices:
+                unqiue_field_key = Key(self.key.pool_name,
+                                       self.key.prefix + "byfield:",
+                                       key=index)
+                pool.hdel(unqiue_field_key, self[index])
             self._clean()
         return self
 
