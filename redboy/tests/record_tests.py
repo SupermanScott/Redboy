@@ -152,8 +152,8 @@ def test_views():
         record.Key(pool_name="test_pool", prefix="test", key="scott"))
 
     mock_view = mock.Mock(name="view")
-    get_mock = mock.Mock(name="get_indexes", return_value=[mock_view])
-    loaded_record.get_indexes = get_mock
+    get_mock = mock.Mock(name="get_views", return_value=[mock_view])
+    loaded_record.get_views = get_mock
     loaded_record.save()
 
     assert mock_view.mock_calls[0][0] == 'append', \
@@ -166,7 +166,7 @@ def test_views():
     mock_view.reset_mock()
 
     new_record = record.Record()
-    new_record.get_indexes = get_mock
+    new_record.get_views = get_mock
     new_record.save()
 
     assert mock_view.mock_calls[0][0] == 'append', \
@@ -182,13 +182,13 @@ def test_removal():
         record.Key(pool_name="test_pool", prefix="test", key="scott"))
 
     mock_view = mock.Mock(name="view")
-    get_mock = mock.Mock(name="get_indexes", return_value=[mock_view])
+    get_mock = mock.Mock(name="get_views", return_value=[mock_view])
     mock_mirror = mock.Mock(name="mirror")
     get_mirrors = mock.Mock(
         name="get_mirrors",
         return_value=[mock_mirror])
 
-    loaded_record.get_indexes = get_mock
+    loaded_record.get_views = get_mock
     loaded_record.get_mirrors = get_mirrors
     loaded_record.remove()
 

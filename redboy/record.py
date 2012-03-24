@@ -80,10 +80,10 @@ class Record(dict):
                 for mirror in self.get_mirrors():
                     mirror._save_internal(mirror.mirror_key(self), changes)
             finally:
-                # Update indexes
-                for index in self.get_indexes():
-                    index.record_class = self.__class__
-                    index.append(self, new_record)
+                # Update Views
+                for view in self.get_views():
+                    view.record_class = self.__class__
+                    view.append(self, new_record)
         finally:
             # Clean up internal state
             self._modified.clear()
@@ -102,10 +102,10 @@ class Record(dict):
                     mirror.key = mirror.mirror_key(self)
                     mirror.remove()
             finally:
-                # Update indexes
-                for index in self.get_indexes():
-                    index.record_class = self.__class__
-                    index.remove(self)
+                # Update viewes
+                for view in self.get_views():
+                    view.record_class = self.__class__
+                    view.remove(self)
         finally:
             get_pool(pool_name).delete(str(self.key))
             self._clean()
@@ -134,8 +134,8 @@ class Record(dict):
 
         self._modified, self._deleted = {}, {}
 
-    def get_indexes(self):
-        """Return indexes this record should be stored in."""
+    def get_views(self):
+        """Return views this record should be stored in."""
         # @TODO: refactor this guy away!
         return self._views
 
@@ -154,7 +154,8 @@ class Record(dict):
 
         # Delete items
         if changes['deleted']:
-            connection_pool.hdel(str(key), *changes['deleted'])        
+            # Remove the deleted field from hash
+            connection_pool.hdel(str(key), *changes['deleted'])
         self._deleted.clear()
 
         # Update items
