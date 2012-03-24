@@ -66,11 +66,8 @@ class Record(dict):
         """Load the Record by the unqiue index. field must be contained in
         self._indices and is the value of the field. Constructs a key throught
         self.make_key()"""
-        key = self.make_key()
-
         self._clean()
-        key.prefix += "byfield:"
-        key.key = field
+        key = self.make_index_key(field)
         return self.load(get_pool(key.pool_name).hget(str(key), value))
 
     def save(self):
@@ -125,9 +122,7 @@ class Record(dict):
             pool = get_pool(pool_name)
             pool.delete(str(self.key))
             for index in self._indices:
-                unqiue_field_key = Key(self.key.pool_name,
-                                       self.key.prefix + "byfield:",
-                                       key=index)
+                unqiue_field_key = self.make_index_key(index, self.key)
                 pool.hdel(unqiue_field_key, self[index])
             self._clean()
         return self
@@ -137,7 +132,18 @@ class Record(dict):
         if not self.key:
             return Key(self._pool_name, self._prefix, key)
         else:
-            self.key.key = key
+            return Key(self.key._pool_name, self.key._prefix, key)
+
+    def make_index_key(self, field, key=None):
+        """Makes a new Key object for the unique index on field"""
+        if isinstance(key, Key):
+            starting_key = copy.copy(key)
+        else:
+            starting_key = self.make_key()
+
+        starting_key.prefix += "byfield:"
+        starting_key.key = field
+        return starting_key
 
     def valid(self):
         """Return a boolean indicating whether the record is valid."""
@@ -180,9 +186,7 @@ class Record(dict):
                 deleted_fields.append(field)
                 # Delete the record from the unique indices.
                 if field in self._indices:
-                    unique_field_key = Key(key.pool_name,
-                                           key.prefix + "byfield:",
-                                           key=field)
+                    unique_field_key = self.make_index_key(field, key)
                     connection_pool.hdel(
                         str(unique_field_key),
                         old_value)
@@ -201,9 +205,7 @@ class Record(dict):
 
                 # Update the unique indexes
                 if field in self._indices:
-                    unique_field_key = Key(key.pool_name,
-                                           key.prefix + "byfield:",
-                                           key=field)
+                    unique_field_key = self.make_index_key(field, key)
 
                     # Delete the old index.
                     if original_value:
