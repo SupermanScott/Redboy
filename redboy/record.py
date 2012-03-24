@@ -41,7 +41,7 @@ class Record(dict):
             self[key] = value
 
         if not self._prefix:
-            self._prefix = str.lower(self.__class__.__name__)
+            self._prefix = str.lower(self.__class__.__name__) + ":"
 
         if not self._pool_name:
             self._pool_name = str.lower(self.__class__.__name__)
