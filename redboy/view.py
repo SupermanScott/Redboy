@@ -31,6 +31,14 @@ class View(object):
             yield self.record_class().load(record_key)
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            connection = get_pool(self.key.pool_name)
+            # @TODO: slice.step is completly ignored.
+            response = connection.lrange(str(self.key), key.start, key.stop)
+            return [self.record_class().load(record_key)
+                    for record_key in response]
+
+        # Else return the one at the spot.
         record_key = get_pool(self.key.pool_name).lindex(str(self.key), key)
         return self.record_class().load(record_key)
 
@@ -84,6 +92,16 @@ class Score(object):
             yield self.record_class().load(record_key[0])
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            connection = get_pool(self.key.pool_name)
+            response = connection.zrange(
+                str(self.key),
+                key.start,
+                key.stop,
+                self.reverse)
+            return [self.record_class().load(record_key)
+                    for record_key in response]
+
         record_key = get_pool(self.key.pool_name).zrange(
             str(self.key),
             key,
