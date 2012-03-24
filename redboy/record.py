@@ -155,7 +155,8 @@ class Record(dict):
         # Delete items
         if changes['deleted']:
             # Remove the deleted field from hash
-            connection_pool.hdel(str(key), *changes['deleted'])
+            deleted_fields = [x[0] for x in changes['deleted']]
+            connection_pool.hdel(str(key), *deleted_fields)
         self._deleted.clear()
 
         # Update items
@@ -166,12 +167,12 @@ class Record(dict):
 
     def _marshal(self):
         """Marshal deleted and changed columns."""
-        return {'deleted': tuple(field 
-                                 for field in self._deleted.keys()
-                                 if self._deleted[field]),
-                'changed': tuple((key, self._columns[key],)
-                                 for key in self._modified.keys()
-                                 if self._modified[key])}
+        return {'deleted': tuple((field , old_value,)
+                                 for field, old_value in self._deleted.iteritems()
+                                 if old_value),
+                'changed': tuple((key, mod_value,)
+                                 for key, mod_value in self._modified.iteritems()
+                                 if mod_value)}
 
     def _clean(self):
         """Remove every item from the object"""
@@ -203,7 +204,7 @@ class Record(dict):
     def __delitem__(self, item):
         dict.__delitem__(self, item)
         # Don't record this as a deletion if it wouldn't require a remove()
-        self._deleted[item] = item in self._original
+        self._deleted[item] = self._original.get(item, None)
         if item in self._modified:
             del self._modified[item]
         del self._columns[item]
